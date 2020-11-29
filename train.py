@@ -20,7 +20,7 @@ with open('config.json') as config_file:
     config = json.load(config_file)
 
 # Setting up training parameters
-tf.set_random_seed(config['random_seed'])
+tf.random.set_seed(config['random_seed'])
 
 max_num_training_steps = config['max_num_training_steps']
 num_output_steps = config['num_output_steps']
