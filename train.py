@@ -12,7 +12,6 @@ from timeit import default_timer as timer
 
 import tensorflow as tf
 import numpy as np
-from tensorflow.examples.tutorials.mnist import input_data
 
 from model import Model
 from pgd_attack import LinfPGDAttack
@@ -31,7 +30,8 @@ num_checkpoint_steps = config['num_checkpoint_steps']
 batch_size = config['training_batch_size']
 
 # Setting up the data and the model
-mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+mnist = tf.keras.datasets.mnist
+
 global_step = tf.contrib.framework.get_or_create_global_step()
 model = Model()
 
