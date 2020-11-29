@@ -9,6 +9,9 @@ The next steps are to ensure `eval.py` and `run_attack.py` work as well.
 
 I will be doing the same for the cifar-10 things as well @ https://github.com/dancwpark/cifar10_challenge
 
+## Maybe change
+`remove_checkpoint` -> use standard apis
+
 # MNIST Adversarial Examples Challenge
 
 Recently, there has been much progress on adversarial *attacks* against neural networks, such as the [cleverhans](https://github.com/tensorflow/cleverhans) library and the code by [Carlini and Wagner](https://github.com/carlini/nn_robust_attacks).

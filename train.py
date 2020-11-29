@@ -8,6 +8,7 @@ from datetime import datetime
 import json
 import os
 import shutil
+import random
 from timeit import default_timer as timer
 
 import tensorflow.compat.v1 as tf
@@ -82,11 +83,26 @@ def next_batch(dataset, bs, bc):
   Arguments:
   -- bs: batch_size
   -- bc: batch_counter
+  Return:
+  -- x_batch
+  -- y_batch
+  -- dataset
+  -- bc
   """
   x, y = dataset
   size = len(x)
 
-  return x[bc*bs:(bc+1)*bs], y[bc*bs:(bc+1)*bs] 
+  start = bc*bs
+  end = (bc+1)*bs
+
+  if end > size:
+    print('hit')
+    bc = 0
+    temp = list(zip(x, y))
+    random.shuffle(temp)
+    x, y = np.array([i for i,j in temp]), np.array([j for i,j in temp])
+    
+  return x[bc*bs:(bc+1)*bs], y[bc*bs:(bc+1)*bs], (x, y), bc
 
 with tf.Session() as sess:
   # Initialize the summary writer, global variables, and our time counter.
@@ -99,7 +115,7 @@ with tf.Session() as sess:
   # Main training loop
   for ii in range(max_num_training_steps):
     #x_batch, y_batch = mnist.train.next_batch(batch_size)
-    x_batch, y_batch = next_batch(mnist_train, batch_size, bcount)
+    x_batch, y_batch, mnist_train, bcount = next_batch(mnist_train, batch_size, bcount)
 
     # Compute Adversarial Perturbations
     start = timer()
