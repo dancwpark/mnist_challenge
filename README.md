@@ -1,3 +1,14 @@
+# Note from dancwpark
+I revisited this near the end of 2020. I found that the code worked on my machine that I haven't updated since 2018, but I was not able to get the correct environment setup on any newer machine. 
+
+After trying to get the correct (or one of the correct) versions of tensorflow set up and giving up... I started to edit the files to work with `tf.compat.v1`.
+
+So far, everything for training the models works.
+
+The next steps are to ensure `eval.py` and `run_attack.py` work as well.
+
+I will be doing the same for the cifar-10 things as well @ https://github.com/dancwpark/cifar10_challenge
+
 # MNIST Adversarial Examples Challenge
 
 Recently, there has been much progress on adversarial *attacks* against neural networks, such as the [cleverhans](https://github.com/tensorflow/cleverhans) library and the code by [Carlini and Wagner](https://github.com/carlini/nn_robust_attacks).

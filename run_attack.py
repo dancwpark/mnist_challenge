@@ -1,3 +1,5 @@
+# TODO: FIX
+
 """Evaluates a model against examples from a .npy file as specified
    in config.json"""
 from __future__ import absolute_import
