@@ -38,7 +38,7 @@ batch_size = config['training_batch_size']
 mnist_train, mnist_test = tf.keras.datasets.mnist.load_data()
 # Reshaping to (?, 784)
 temp_x_reshape = mnist_train[0].reshape(mnist_train[0].shape[0], mnist_train[0].shape[1]**2)
-mnist_train = (temp_x_reshape, mnist_train[1])
+mnist_train = (temp_x_reshape/255., mnist_train[1])
 
 #global_step = tf.contrib.framework.get_or_create_global_step()
 global_step = tf.train.get_or_create_global_step()

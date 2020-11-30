@@ -1,4 +1,5 @@
-# TODO: FIX????
+# TODO: verify in run_attack.py that the adversarial examples are correct shape
+## (,784) instead of (28, 28)
 
 """
 Implementation of attack methods. Running this file as a program will
@@ -9,7 +10,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.compat.v1.disable_eager_execution()
+tf.disable_v2_behavior()
+
+
 import numpy as np
 
 
@@ -62,13 +68,37 @@ class LinfPGDAttack:
 
     return x
 
+def next_batch(dataset, bs, bc):
+  """
+  Get batch
+  Arguments:
+  -- bs: batch_size
+  -- bc: batch_counter
+  Return:
+  -- x_batch
+  -- y_batch
+  -- dataset
+  -- bc
+  """
+  x, y = dataset
+  size = len(x)
+
+  start = bc*bs
+  end = (bc+1)*bs
+
+  if end > size:
+    print('hit')
+    bc = 0
+    temp = list(zip(x, y))
+    random.shuffle(temp)
+    x, y = np.array([i for i,j in temp]), np.array([j for i,j in temp])
+    
+  return x[bc*bs:(bc+1)*bs], y[bc*bs:(bc+1)*bs], (x, y), bc
 
 if __name__ == '__main__':
   import json
   import sys
   import math
-
-  from tensorflow.examples.tutorials.mnist import input_data
 
   from model import Model
 
@@ -89,7 +119,10 @@ if __name__ == '__main__':
                          config['loss_func'])
   saver = tf.train.Saver()
 
-  mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+  mnist_train, mnist_test = tf.keras.datasets.mnist.load_data()
+  # Reshaping to (?, 784)
+  temp_x_reshape = mnist_test[0].reshape(mnist_test[0].shape[0], mnist_test[0].shape[1]**2)
+  mnist_test = (temp_x_reshape/255., mnist_test[1])
 
   with tf.Session() as sess:
     # Restore the checkpoint
@@ -109,11 +142,10 @@ if __name__ == '__main__':
       bend = min(bstart + eval_batch_size, num_eval_examples)
       print('batch size: {}'.format(bend - bstart))
 
-      x_batch = mnist.test.images[bstart:bend, :]
-      y_batch = mnist.test.labels[bstart:bend]
+      x_batch = mnist_test[0][bstart:bend, :]
+      y_batch = mnist_test[1][bstart:bend]
 
       x_batch_adv = attack.perturb(x_batch, y_batch, sess)
-
       x_adv.append(x_batch_adv)
 
     print('Storing examples')

@@ -13,15 +13,23 @@ import os
 import sys
 import time
 
-import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.compat.v1.disable_eager_execution()
+tf.disable_v2_behavior()
+
+#from tensorflow.examples.tutorials.mnist import input_data
 
 import numpy as np
 
 from model import Model
 
 def run_attack(checkpoint, x_adv, epsilon):
-  mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+  #mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+  mnist_train, mnist_test = tf.keras.datasets.mnist.load_data()
+  # Reshaping to (?, 784)
+  temp_x_reshape = mnist_test[0].reshape(mnist_test[0].shape[0], mnist_test[0].shape[1]**2)
+  mnist_test = (temp_x_reshape/255., mnist_test[1])
 
   model = Model()
 
@@ -33,8 +41,11 @@ def run_attack(checkpoint, x_adv, epsilon):
   num_batches = int(math.ceil(num_eval_examples / eval_batch_size))
   total_corr = 0
 
-  x_nat = mnist.test.images
+  #x_nat = mnist.test.images
+  x_nat = mnist_test[0]
+
   l_inf = np.amax(np.abs(x_nat - x_adv))
+  print(x_nat.shape, x_adv.shape)
   
   if l_inf > epsilon + 0.0001:
     print('maximum perturbation found: {}'.format(l_inf))
@@ -53,7 +64,8 @@ def run_attack(checkpoint, x_adv, epsilon):
       bend = min(bstart + eval_batch_size, num_eval_examples)
 
       x_batch = x_adv[bstart:bend, :]
-      y_batch = mnist.test.labels[bstart:bend]
+      #y_batch = mnist.test.labels[bstart:bend]
+      y_batch = mnist_test[1][bstart:bend]
 
       dict_adv = {model.x_input: x_batch,
                   model.y_input: y_batch}
