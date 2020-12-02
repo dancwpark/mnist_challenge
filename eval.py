@@ -16,11 +16,16 @@ import os
 import sys
 import time
 
-import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
+import tensorflow.compat.v1 as tf
+tf.compat.v1.disable_eager_execution()
+tf.disable_v2_behavior()
+#from tensorflow.examples.tutorials.mnist import input_data
 
 from model import Model
 from pgd_attack import LinfPGDAttack
+
+def debug():
+  print("HERE")
 
 # Global constants
 with open('config.json') as config_file:
@@ -31,8 +36,12 @@ eval_on_cpu = config['eval_on_cpu']
 
 model_dir = config['model_dir']
 
-# Set upd the data, hyperparameters, and the model
-mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+# Set up the data, hyperparameters, and the model
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=False)
+mnist_train, mnist_test = tf.keras.datasets.mnist.load_data()
+# Reshaping to (?, 784)
+temp_x_reshape = mnist_test[0].reshape(mnist_test[0].shape[0], mnist_test[0].shape[1]**2)
+mnist_test = (temp_x_reshape/255., mnist_test[1])
 
 if eval_on_cpu:
   with tf.device("/cpu:0"):
@@ -52,7 +61,8 @@ else:
                          config['random_start'],
                          config['loss_func'])
 
-global_step = tf.contrib.framework.get_or_create_global_step()
+#global_step = tf.contrib.framework.get_or_create_global_step()
+global_step = tf.train.get_or_create_global_step()
 
 # Setting up the Tensorboard and checkpoint outputs
 if not os.path.exists(model_dir):
@@ -84,8 +94,8 @@ def evaluate_checkpoint(filename):
       bstart = ibatch * eval_batch_size
       bend = min(bstart + eval_batch_size, num_eval_examples)
 
-      x_batch = mnist.test.images[bstart:bend, :]
-      y_batch = mnist.test.labels[bstart:bend]
+      x_batch = mnist_test[0][bstart:bend, :]
+      y_batch = mnist_test[1][bstart:bend]
 
       dict_nat = {model.x_input: x_batch,
                   model.y_input: y_batch}
@@ -129,9 +139,12 @@ def evaluate_checkpoint(filename):
 # Infinite eval loop
 while True:
   cur_checkpoint = tf.train.latest_checkpoint(model_dir)
+  
+  # TODO: personal machine is just slow in this loop -- check on server running TF 2.1
 
   # Case 1: No checkpoint yet
   if cur_checkpoint is None:
+
     if not already_seen_state:
       print('No checkpoint yet, waiting ...', end='')
       already_seen_state = True
